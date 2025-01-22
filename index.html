@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Add Map</title>
+    <link rel="stylesheet" type="text/css" href="./style.css" />
+    <script type="module" src="./index.js"></script>
+     <!-- Google Maps API Script -->
+     <script
+     src="https://maps.googleapis.com/maps/api/js?key=&libraries=places&callback=initAutocomplete"
+     async
+     defer
+   ></script>
+    <style>
+      #map {
+        height: 500px;
+        width: 100%;
+      }
+
+      .place-autocomplete-card {
+        margin-bottom: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h3>Search and pin location</h3>
+
+    <!-- Input field for place autocomplete -->
+    <div class="place-autocomplete-card" id="place-autocomplete-card">
+      <input id="place-autocomplete-input" type="text" placeholder="Search for a place here:"/>
+    </div>
+
+    <!-- Map container -->
+    <div id="map"></div>
+
+    <!--Do autocomplete and map selection using inline javascript-->
+    <script>
+      let map, autocomplete, marker;
+
+      // Initialize the map and autocomplete
+      function initAutocomplete() {
+        // Initialize the map
+        map = new google.maps.Map(document.getElementById("map"), {
+          center: { lat: -33.9249, lng: 18.4241 }, // Default: Cape Town, South Africa
+          zoom: 12,
+        });
+
+        // Link autocomplete to the input field
+        autocomplete = new google.maps.places.Autocomplete(
+          document.getElementById("place-autocomplete-input"),
+          {
+            componentRestrictions: { country: ["ZA"] }, // Restrict to South Africa
+            fields: ["place_id", "geometry", "name", "formatted_address"],
+          }
+        );
+
+       
+        autocomplete.addListener("place_changed", onPlaceChanged);
+      }
+
+     
+      function onPlaceChanged() {
+        const place = autocomplete.getPlace();
+
+        if (!place.geometry || !place.geometry.location) {
+          alert("No details available for the selected place.");
+          return;
+        }
+
+        
+        map.setCenter(place.geometry.location);
+        map.setZoom(15); 
+
+      
+        if (marker) {
+          marker.setMap(null);
+        }
+
+       
+        marker = new google.maps.Marker({
+          position: place.geometry.location,
+          map: map,
+          title: place.name,
+        });
+
+        
+        const infoWindow = new google.maps.InfoWindow({
+          content: `<strong>${place.name}</strong><br>${place.formatted_address || ""}`,
+        });
+
+        infoWindow.open(map, marker);
+
+        
+        marker.addListener("click", () => {
+          infoWindow.close(); //close info window once pin has been searched
+        });
+        document.getElementById("place-autocomplete-input").value = ""; //clear window once closed
+      }
+      
+
+    </script>
+  </body>
+</html>
